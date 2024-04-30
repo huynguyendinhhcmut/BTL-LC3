@@ -1,0 +1,600 @@
+;
+;BTL Best version
+;
+.ORIG x3000
+
+;Clear thanh ghi
+	AND R0,R0,#0
+	AND R1,R1,#0
+	AND R2,R2,#0
+	AND R3,R3,#0
+	AND R4,R4,#0
+	AND R5,R5,#0
+	AND R6,R6,#0
+
+;Cac o chua
+	MESG1		.STRINGZ "So chu so N<6: "
+	MESG2		.STRINGZ "\n0<N<6, nhap lai: "
+	MESG3		.STRINGZ "\nLuu y 3 quy tac: "
+	MESG4		.STRINGZ "\n1. -32768<=X<=32767 "
+	MESG5		.STRINGZ "\n2. X>0, hay nhap so nguyen duong nho hon 4. "
+	MESG6		.STRINGZ "\n3. X<0, hay nhap ki tu dau tien la dau '-'. "
+	MESG7		.STRINGZ "\nBat dau nhap: "
+	MESG9		.STRINGZ "\nKhong nhap 0: "
+	SoChuSo		.BLKW #1	;Chua so chu so
+	ASCIIBUFF	.BLKW #5	;Chua cac chu so nhap vao
+	DECIMALBUFF	.BLKW #5	;Chua kq cua phep tinh ASCII qua DECIMAL
+	TOTALBUFF 	.BLKW #1	;Tinh tong 
+
+;Nhap so chu so
+	LEA R1,SoChuSo		;Dua dia chi cua SoChuSo vao R1
+	LEA R0,MESG1		;R0 chua MESG1
+	PUTS			;in MESG1
+	GETC			;Nhap 1 ki tu
+	OUT			;Xuat ra man hinh ki tu da nhap
+	ADD R2,R0,#-16		;Nhap so chu so vo R2
+	ADD R2,R2,#-16
+	ADD R2,R2,#-16		;Chuyen ve DECIMAL
+	
+	ADD R2,R2,#-5		;Check so chu so > 5? (SoChuSo-5)
+	BRp AGAIN		;Neu > 5 thi AGAIN
+	BRnz Cont		;Neu be hon hoac bang 5 thi Cont
+
+AGAIN	LEA R0,MESG2		;Dua MESG2 vao R0
+	PUTS			;in MESG2
+	GETC 			;Nhap 1 ki tu
+	OUT			;Xuat ra man hinh ki tu da nhap
+	ADD R2,R0,#-16		;Nhap lai so chu so vo R2
+	ADD R2,R2,#-16
+	ADD R2,R2,#-16
+	
+	ADD R2,R2,#-5		;Check so chu so > 5?
+	BRp AGAIN		;Neu > 5 thi AGAIN
+	BRnz Cont		;Neu be hon hoac bang 5 thi Cont
+	
+Cont	ADD R2,R2,#5		;Check so chu so = 0?
+	BRz AGAIN		
+	
+	STR R2,R1,#0		;Luu so chu so vo SoChuSo .BLKW #1 | M[R2] --> M[M[R1]]
+	AND R1,R1,#0	
+	AND R2,R2,#0
+
+;Luu y quy tac
+	LEA R0,MESG3
+	PUTS
+	LEA R0,MESG4
+	PUTS
+	LEA R0,MESG5
+	PUTS
+	LEA R0,MESG6
+	PUTS
+
+;Am hay duong?
+	LEA R0,MESG7
+	PUTS
+	LEA R0,MESG9
+	PUTS
+	IN
+	ADD R2,R0,#-16
+	ADD R2,R2,#-16
+	ADD R2,R2,#-16
+	BRn Nega
+	BRp EnterP
+	BRz x-9
+
+Nega	LEA R6,SIGNBUFF		;Luu dia chi cua SIGNBUFF vao R6
+	STR R2,R6,#0		;Luu dau "-" vao SIGNBUFF
+	BRnzp EnterN
+	
+;Nhap cac chu so
+EnterP	AND R0,R0,#0
+	AND R1,R1,#0
+	AND R6,R6,#0
+
+	ADD R2,R2,#15
+	ADD R2,R2,#15
+	ADD R2,R2,#15			
+	ADD R2,R2,#3		;Dua R2 ve lai ma ASCII
+	
+	LEA R1,ASCIIBUFF	;R1 chua dia chi ASCIIBUFF
+	STR R2,R1,#0			
+				
+	LEA R6,SoChuSo		;R6 chua dia chi chu so chu so
+	LDR R5,R6,#0		;R5 chua so chu so
+	ADD R5,R5,#-1		;Vi da nhap 1 lan nen phai tru 1, neu la am thi nhap dau "-"
+	BRz Count
+	IN
+	ADD R3,R0,#0		;Vong lap cac chu so
+	ADD R1,R1,#1
+	STR R3,R1,#0
+	ADD R5,R5,#-1		;R2 dang luu so chu so, su dung lam bien dem
+	BRp x-6
+	BRnzp Count
+
+EnterN	AND R0,R0,#0
+	AND R1,R1,#0
+	AND R6,R6,#0
+	
+	LEA R6,SoChuSo		;R6 chua dia chi chu so chu so
+	LDR R5,R6,#0		;dua gia tri cua SoChuSo vao R5 | M[M[R6]] --> M[R5]
+	LEA R1,ASCIIBUFF
+	ADD R1,R1,#-1
+
+	LEA R0,MESG9
+	PUTS
+	IN
+	ADD R0,R0,#-16
+	ADD R0,R0,#-16
+	ADD R0,R0,#-16
+	BRz x-7
+	ADD R0,R0,#15
+	ADD R0,R0,#15
+	ADD R0,R0,#15
+	ADD R0,R0,#3
+	BRnzp SKIP
+	
+	IN
+SKIP	ADD R3,R0,#0		;Vong lap cac chu so
+	ADD R1,R1,#1
+	STR R3,R1,#0
+	ADD R5,R5,#-1		;R2 dang luu so chu so, su dung lam bien dem
+	BRp x-6
+	BRnzp Count
+
+;Tinh toan
+Count	LEA R0,TOTALBUFF	;R0 chua dia chi cua TOTALBUFF
+	LEA R1,ASCIIBUFF	;R1 chua dia chi cua ASCIIBUFF
+	LEA R3,DECIMALBUFF	;R3 chua dia chi cua DECIMALBUFF
+	LDR R2,R1,#0		;R2 chua gia tri dau tien cua ASCIIBUFF
+	LDR R5,R6,#0		;R5 chua so chu so
+	ADD R4,R5,#-5
+	BRz FIVE		;5 chu so
+	ADD R4,R5,#-4
+	BRz FOUR		;4 chu so
+	ADD R4,R5,#-3
+	BRz THREE		;3 chu so
+	ADD R4,R5,#-2
+	BRz TWO			;2 chu so
+	ADD R4,R5,#-1
+	BRz ONE			;1 chu so
+
+;Truong hop 5 chu so
+FIVE	ADD R2,R2,#-16
+	ADD R2,R2,#-16
+	ADD R2,R2,#-16		;Dua ve DECIMAL
+	BRz Zero1
+
+	AND R5,R5,#0
+	AND R6,R6,#0
+	ADD R4,R4,#10
+	ADD R5,R5,#10
+	ADD R6,R6,R4		;R6=10*10=100
+	ADD R5,R5,#-1
+	BRp x-3
+
+	ADD R5,R5,R6		;Bien dem 100
+	ADD R4,R6,#0		;R4 = 100		
+	AND R6,R6,#0
+	ADD R6,R6,R4		;R6=100*100=10000
+	ADD R5,R5,#-1
+	BRp x-3
+
+	ADD R5,R5,R6		;R5 = 1st ASCIIBUFF *10000
+	ADD R2,R2,#-1
+	BRp x-3		
+	BRnzp NoZero1		
+	
+Zero1	AND R5,R5,#0	
+	STR R5,R3,#0
+NoZero1	STR R5,R3,#0		;Luu ket qua da tinh vao DECIMALBUFF dau tien
+	
+	ADD R3,R3,#1		;Den dia chi DECIMALBUFF thu hai
+	ADD R1,R1,#1		;Den dia chi ASCIIBUFF thu hai
+	LDR R2,R1,#0		;R2 chua gia tri thu hai cua ASCIIBUFF
+	
+	ADD R2,R2,#-16
+	ADD R2,R2,#-16
+	ADD R2,R2,#-16		;Dua ve DECIMAL
+	BRz Zero2
+	
+	AND R5,R5,#0
+	AND R6,R6,#0
+	ADD R5,R5,#10
+	ADD R6,R6,R4		;R4 = 100
+	ADD R5,R5,#-1
+	BRp x-3			;R6 = 100*10=1000
+	
+	ADD R5,R5,R6
+	ADD R2,R2,#-1
+	BRp x-3			;R5 = 2nd ASCIIBUFF*1000
+	BRnzp NoZero2
+Zero2	AND R5,R5,#0	
+	STR R5,R3,#0
+NoZero2	STR R5,R3,#0		;Luu ket qua da tinh vao DECIMALBUFF thu hai
+	
+	ADD R1,R1,#1		;Den dia chi ASCIIBUFF thu ba
+	ADD R3,R3,#1		;Den dia chi DECIMALBUFF thu ba
+	LDR R2,R1,#0		;R2 chua gia tri thu ba cua ASCIIBUFF
+
+	ADD R2,R2,#-16
+	ADD R2,R2,#-16
+	ADD R2,R2,#-16		;Dua ve DECIMAL
+	BRz Zero3
+
+	AND R5,R5,#0
+	ADD R5,R5,R4
+	ADD R2,R2,#-1
+	BRp x-3			;R5 = 3rd ASCIIBUFF * 100
+	BRnzp NoZero3
+	
+Zero3	AND R5,R5,#0	
+	STR R5,R3,#0
+NoZero3	STR R5,R3,#0		;Luu ket qua da tinh vao DECIMALBUFF thu ba
+
+	ADD R1,R1,#1		;Den dia chi ASCIIBUFF thu tu
+	ADD R3,R3,#1		;Den dia chi DECIMALBUFF thu tu
+	LDR R2,R1,#0		;R2 chua gia tri thu tu cua ASCIIBUFF
+	
+	ADD R2,R2,#-16
+	ADD R2,R2,#-16
+	ADD R2,R2,#-16		;Dua ve DECIMAL
+	BRz Zero4
+
+	AND R4,R4,#0
+	AND R5,R5,#0
+	ADD R4,R4,#10
+	ADD R5,R5,R4
+	ADD R2,R2,#-1
+	BRp x-3			;R5 = 4th ASCIIBUFF*10
+	BRnzp NoZero4
+
+Zero4	AND R5,R5,#0	
+	STR R5,R3,#0
+NoZero4	STR R5,R3,#0		;Luu ket qua da tinh vao DECIMALBUFF thu tu
+	
+	ADD R1,R1,#1		;Den dia chi ASCIIBUFF thu nam
+	ADD R3,R3,#1		;Den dia chi DECIMALBUFF thu nam
+	LDR R2,R1,#0		;R2 chua gia tri thu nam cua ASCIIBUFF
+
+	ADD R2,R2,#-16
+	ADD R2,R2,#-16
+	ADD R2,R2,#-16		;Dua ve DECIMAL
+	
+	STR R2,R3,#0		;Luu ket qua da tinh vao DECIMALBUFF thu nam
+	
+	AND R4,R4,#0
+	AND R5,R5,#0
+	AND R6,R6,#0
+
+	ADD R3,R3,#-4
+	ADD R6,R6,#5		;Bien dem 5 chu so
+	ADD R3,R3,#-1		
+	ADD R3,R3,#1
+	LDR R4,R3,#0		;R4 chua gia tri dau tien cua DECIMALBUFF
+	ADD R5,R5,R4		;R5 = TOTAL
+	ADD R6,R6,#-1
+	BRp x-5
+	
+	STR R5,R0,#0		;Luu TOTAL vao TOTALBUFF
+	BRnzp PRINT
+
+;Truong hop 4 chu so
+FOUR	AND R4,R4,#0
+	AND R5,R5,#0
+	AND R6,R6,#0
+
+	ADD R2,R2,#-16
+	ADD R2,R2,#-16
+	ADD R2,R2,#-16		;Dua ve DECIMAL
+	BRz Zero5
+	
+	ADD R4,R4,#10
+	ADD R5,R5,#10
+	ADD R6,R6,R4		;R6 = 10*10 =100
+	ADD R5,R5,#-1
+	BRp x-3
+
+	ADD R5,R5,R6		;R5 = 100*10
+	ADD R4,R4,#-1
+	BRp x-3
+	
+	ADD R4,R4,R5		;R4 = 1st ASCIIBUFF * 1000
+	ADD R2,R2,#-1	
+	BRp x-3		
+	BRnzp NoZero5
+	
+Zero5	AND R5,R5,#0
+	STR R5,R3,#0	
+NoZero5	STR R4,R3,#0		;Luu ket qua da tinh vao DECIMALBUFF dau tien
+
+	ADD R1,R1,#1		;Den dia chi ASCIIBUFF thu hai
+	ADD R3,R3,#1		;Den dia chi DECIMALBUFF thu hai
+	LDR R2,R1,#0		;R2 chua gia tri thu hai cua ASCIIBUFF
+	AND R5,R5,#0
+	
+	ADD R2,R2,#-16
+	ADD R2,R2,#-16
+	ADD R2,R2,#-16		;Dua ve DECIMAL
+	BRz Zero6
+	
+	ADD R5,R5,R6		;R6 = 100 / R5 = 2nd ASCIIBUFF * 100
+	ADD R2,R2,#-1
+	BRp x-3
+	BRnzp NoZero6
+
+Zero6	AND R5,R5,#0
+	STR R5,R3,#0	
+NoZero6	STR R5,R3,#0		;Luu ket qua da tinh vao DECIMALBUFF thu hai
+	
+	ADD R1,R1,#1		;Den dia chi ASCIIBUFF thu ba
+	ADD R3,R3,#1		;Den dia chi DECIMALBUFF thu ba
+	LDR R2,R1,#0		;R2 chua gia tri thu ba cua ASCIIBUFF
+	AND R5,R5,#0
+	
+	ADD R2,R2,#-16
+	ADD R2,R2,#-16
+	ADD R2,R2,#-16		;Dua ve DECIMAL
+	BRz Zero7
+	
+	AND R4,R4,#0
+	AND R5,R5,#0
+	ADD R4,R4,#10		;R4 = 10
+	ADD R5,R5,R4		;R5 = 3rd ASCIIBUFF * 10
+	ADD R2,R2,#-1
+	BRp x-3
+	BRnzp NoZero7			
+
+Zero7	AND R5,R5,#0
+	STR R5,R3,#0
+NoZero7	STR R5,R3,#0		;Luu ket qua da tinh vao DECIMALBUFF thu ba
+	
+	ADD R1,R1,#1		;Den dia chi ASCIIBUFF thu tu
+	ADD R3,R3,#1		;Den dia chi DECIMALBUFF thu tu
+	LDR R2,R1,#0		;R2 chua gia tri thu tu cua ASCIIBUFF
+	
+	ADD R2,R2,#-16
+	ADD R2,R2,#-16
+	ADD R2,R2,#-16		;Dua ve DECIMAL
+	
+	STR R2,R3,#0		;Luu ket qua da tinh vao DECIMALBUFF thu nam
+	
+	AND R4,R4,#0
+	AND R5,R5,#0
+	AND R6,R6,#0
+
+	ADD R3,R3,#-3
+	ADD R6,R6,#4		;Bien dem 4 chu so
+	ADD R3,R3,#-1		
+	ADD R3,R3,#1
+	LDR R4,R3,#0		;R4 chua gia tri dau tien cua DECIMALBUFF
+	ADD R5,R5,R4		;R5 = TOTAL
+	ADD R6,R6,#-1
+	BRp x-5
+	
+	STR R5,R0,#0		;Luu TOTAL vao TOTALBUFF
+	BRnzp PRINT
+	SIGNBUFF	.BLKW #1	;Chua dau cua so
+
+;Truong hop 3 chu so
+THREE	AND R4,R4,#0
+	AND R5,R5,#0
+	AND R6,R6,#0	
+
+	ADD R2,R2,#-16
+	ADD R2,R2,#-16
+	ADD R2,R2,#-16		;Dua ve DECIMAL
+	BRz Zero8
+		
+	ADD R4,R4,#10		
+	ADD R5,R5,#10		;Bien dem R5 = 10
+	ADD R6,R6,R4		;R6 = 10*10 = 100
+	ADD R5,R5,#-1
+	BRp x-3
+
+	ADD R5,R5,R6		;R5 = 1st ASCIIBUFF * 100
+	ADD R2,R2,#-1
+	BRp x-3
+	BRnzp NoZero8
+
+Zero8	AND R5,R5,#0
+	STR R5,R3,#0
+NoZero8	STR R5,R3,#0		;Luu ket qua da tinh vao DECIMALBUFF dau tien
+
+	ADD R1,R1,#1		;Den dia chi ASCIIBUFF thu hai
+	ADD R3,R3,#1		;Den dia chi DECIMALBUFF thu hai
+	LDR R2,R1,#0		;R2 chua gia tri thu hai cua ASCIIBUFF
+
+	ADD R2,R2,#-16
+	ADD R2,R2,#-16
+	ADD R2,R2,#-16		;Dua ve DECIMAL
+	BRz Zero9
+
+	AND R5,R5,#0
+	ADD R5,R5,R4		;R5 = 2nd ASCIIBUFF * 10
+	ADD R2,R2,#-1
+	BRp x-3
+	BRnzp NoZero9
+
+Zero9	AND R5,R5,#0
+	STR R5,R3,#0
+NoZero9	STR R5,R3,#0
+
+	ADD R1,R1,#1		;Den dia chi ASCIIBUFF thu ba
+	ADD R3,R3,#1		;Den dia chi DECIMALBUFF thu ba
+	LDR R2,R1,#0		;R2 chua gia tri thu ba cua ASCIIBUFF
+	
+	ADD R2,R2,#-16
+	ADD R2,R2,#-16
+	ADD R2,R2,#-16		;Dua ve DECIMAL
+
+	STR R2,R3,#0		;Luu ket qua da tinh vao DECIMALBUFF thu ba
+	
+	AND R4,R4,#0
+	AND R5,R5,#0
+	AND R6,R6,#0
+
+	ADD R3,R3,#-2
+	ADD R6,R6,#3		;Bien dem 3 chu so
+	ADD R3,R3,#-1		
+	ADD R3,R3,#1
+	LDR R4,R3,#0		;R4 chua gia tri dau tien cua DECIMALBUFF
+	ADD R5,R5,R4		;R5 = TOTAL
+	ADD R6,R6,#-1
+	BRp x-5
+	
+	STR R5,R0,#0		;Luu TOTAL vao TOTALBUFF
+	BRnzp PRINT
+
+;Truong hop 1 chu so
+ONE	ADD R5,R2,#-16
+	ADD R5,R5,#-16
+	ADD R5,R5,#-16		;Dua ve DECIMAL
+	
+	STR R5,R3,#0		;Luu ket qua da tinh vao DECIMALBUFF dau tien
+	STR R5,R0,#0		;Luu TOTAL vao TOTALBUFF
+	BRnzp PRINT
+
+;Truong hop 2 chu so
+TWO	AND R4,R4,#0
+	AND R5,R5,#0
+	AND R6,R6,#0
+	
+	ADD R2,R2,#-16
+	ADD R2,R2,#-16
+	ADD R2,R2,#-16		;Dua ve DECIMAL
+	BRz ZeroA
+	
+	ADD R4,R4,#10
+	ADD R5,R5,R4		;R5 = 1st ASCIIBUFF * 10
+	ADD R2,R2,#-1
+	BRp x-3
+	BRnzp NoZeroA
+	
+ZeroA	AND R5,R5,#0
+	STR R5,R3,#0
+NoZeroA	STR R5,R3,#0		;Luu ket qua da tinh vao DECIMALBUFF dau tien
+
+	ADD R1,R1,#1		;Den dia chi ASCIIBUFF thu hai
+	ADD R3,R3,#1		;Den dia chi DECIMALBUFF thu hai
+	LDR R2,R1,#0		;R2 chua gia tri thu hai cua ASCIIBUFF
+	
+	ADD R2,R2,#-16
+	ADD R2,R2,#-16
+	ADD R2,R2,#-16		;Dua ve DECIMAL
+	
+	STR R2,R3,#0		;Luu ket qua da tinh vao DECIMALBUFF thu hai
+	
+	AND R4,R4,#0
+	AND R5,R5,#0
+	AND R6,R6,#0
+
+	ADD R3,R3,#-1
+	ADD R6,R6,#2		;Bien dem 2 chu so
+	ADD R3,R3,#-1		
+	ADD R3,R3,#1
+	LDR R4,R3,#0		;R4 chua gia tri dau tien cua DECIMALBUFF
+	ADD R5,R5,R4		;R5 = TOTAL
+	ADD R6,R6,#-1
+	BRp x-5
+	
+	STR R5,R0,#0		;Luu TOTAL vao TOTALBUFF
+	BRnzp PRINT
+	
+;Xuat man hinh
+PRINT	AND R0,R0,#0
+	AND R1,R1,#0
+	AND R2,R2,#0
+	AND R3,R3,#0
+	AND R4,R4,#0
+	AND R6,R6,#0
+	LEA R0,MESG8
+	PUTS
+
+;Xuat man hinh dau am
+	LEA R0,SIGNBUFF
+	LDR R1,R0,#0
+	ADD R0,R1,#15
+	ADD R0,R0,#15
+	ADD R0,R0,#15
+	ADD R0,R0,#3
+	OUT
+
+;Xuat man hinh chu so dau tien
+	LD R1,TenThousand
+	NOT R1,R1
+	ADD R1,R1,#1
+	ADD R2,R2,#1
+	ADD R5,R5,R1
+	BRzp x-3
+	ADD R0,R2,#15
+	ADD R0,R0,#15
+	ADD R0,R0,#15
+	ADD R0,R0,#2
+	OUT
+	ADD R1,R1,#-1
+	NOT R1,R1
+	ADD R5,R5,R1
+
+;Xuat man hinh chu so thu hai
+	LD R1,Thousand
+	NOT R1,R1
+	ADD R1,R1,#1
+	ADD R3,R3,#1
+	ADD R5,R5,R1
+	BRzp x-3
+	ADD R0,R3,#15
+	ADD R0,R0,#15
+	ADD R0,R0,#15
+	ADD R0,R0,#2
+	OUT
+	ADD R1,R1,#-1
+	NOT R1,R1
+	ADD R5,R5,R1
+
+;Xuat man hinh chu so thu ba
+	LD R1,Hundred
+	NOT R1,R1
+	ADD R1,R1,#1
+	ADD R4,R4,#1
+	ADD R5,R5,R1
+	BRzp x-3
+	ADD R0,R4,#15
+	ADD R0,R0,#15
+	ADD R0,R0,#15
+	ADD R0,R0,#2
+	OUT
+	ADD R1,R1,#-1
+	NOT R1,R1
+	ADD R5,R5,R1
+	
+;Xuat man hinh chu so thu tu
+	LD R1,Dozen
+	NOT R1,R1
+	ADD R1,R1,#1
+	ADD R6,R6,#1
+	ADD R5,R5,R1
+	BRzp x-3
+	ADD R0,R6,#15
+	ADD R0,R0,#15
+	ADD R0,R0,#15
+	ADD R0,R0,#2
+	OUT
+	ADD R1,R1,#-1
+	NOT R1,R1
+	ADD R5,R5,R1
+
+;Xuat man hinh chu so cuoi cung
+	ADD R0,R5,#15
+	ADD R0,R0,#15
+	ADD R0,R0,#15
+	ADD R0,R0,#3
+	OUT
+	HALT
+
+TOTALBUFF2	.BLKW #1	
+MESG8		.STRINGZ "\nSo da nhap la: "
+TenThousand	.FILL #10000
+Thousand	.FILL #1000
+Hundred		.FILL #100
+Dozen 		.FILL #10 
+.END
